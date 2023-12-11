@@ -23,29 +23,23 @@
 </head>
 <br><br>
 <div class="container">
-  <div class="panel panel-primary">
-    <div class="panel-heading">
-      <h6 class="panel-title">View Marks</h6>
+
+    <div class="alert alert-success result">
+      Last Attempt Result <br/>
+      Score : {{ last_exam.marks }} / 5  <br/>
+      Feedback : {{result}}
     </div>
-    <table class="table table-hover" id="dev-table">
-      <thead>
-        <tr>
 
-          <th>Exam Name</th>
-          
-          <th>View Marks</th>
-        </tr>
-      </thead>
-      {% for t in courses %}
-      <tr>
+    <a class="btn btn-danger btn-primary" href="{% url 'check-marks' %}">View Attempts History</a>
 
-        <td> {{t.course_name}}</td>
-        
-        <td><a class="btn btn-danger btn-xs" href="{% url 'check-marks' t.id  %}"><span class="glyphicon glyphicon-eye-open"></span></a></td>
-      </tr>
-      {% endfor %}
-    </table>
-  </div>
+    {% if last_exam.marks < 3  %}
+   <a class="btn btn-success btn-primary" href="{% url 'take-exam' %}">
+            Retake the Quiz
+        </a>
+{% endif %}
+
+
+
 </div>
 
 <br><br><br><br><br><br>

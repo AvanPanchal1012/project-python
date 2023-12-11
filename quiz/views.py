@@ -16,6 +16,7 @@ from django.contrib.auth.models import User
 
 
 
+
 def home_view(request):
     if request.user.is_authenticated:
         return HttpResponseRedirect('afterlogin')  
@@ -152,6 +153,7 @@ def admin_student_view(request):
 @login_required(login_url='adminlogin')
 def admin_view_student_view(request):
     students= SMODEL.Student.objects.all()
+    print("SWATIIIII")
     return render(request,'quiz/admin_view_student.html',{'students':students})
 
 
@@ -230,9 +232,11 @@ def admin_add_question_view(request):
         questionForm=forms.QuestionForm(request.POST)
         if questionForm.is_valid():
             question=questionForm.save(commit=False)
-            course=models.Course.objects.get(id=request.POST.get('courseID'))
+            # course=models.Course.objects.get(id=request.POST.get('courseID'))
+            course = models.Course.objects.get(id = 1)
+            print(course)
             question.course=course
-            question.save()       
+            question.save()
         else:
             print("form is invalid")
         return HttpResponseRedirect('/admin-view-question')
@@ -242,14 +246,18 @@ def admin_add_question_view(request):
 @login_required(login_url='adminlogin')
 def admin_view_question_view(request):
     courses= models.Question.objects.all()
-    print(request)
-    print(courses.query)
-    print(courses.values())
-    return render(request,'quiz/admin_view_question.html',{'courses':courses})
+
+    total_marks = 0
+
+    for c in courses:
+        total_marks += c.marks
+
+    return render(request,'quiz/admin_view_question.html',{'courses':courses.count(), 'marks': total_marks})
 
 @login_required(login_url='adminlogin')
-def view_question_view(request,pk):
-    questions=models.Question.objects.all().filter(course_id=pk)
+def view_question_view(request):
+    questions=models.Question.objects.all()
+    print(questions);
     return render(request,'quiz/view_question.html',{'questions':questions})
 
 @login_required(login_url='adminlogin')

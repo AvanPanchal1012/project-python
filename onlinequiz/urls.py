@@ -46,7 +46,7 @@ urlpatterns = [
     path('admin-question', views.admin_question_view,name='admin-question'),
     path('admin-add-question', views.admin_add_question_view,name='admin-add-question'),
     path('admin-view-question', views.admin_view_question_view,name='admin-view-question'),
-    path('view-question/<int:pk>', views.view_question_view,name='view-question'),
+    path('view-question', views.view_question_view,name='view-question'),
     path('delete-question/<int:pk>', views.delete_question_view,name='delete-question'),
 
 

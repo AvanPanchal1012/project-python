@@ -1,3 +1,5 @@
+import random
+
 from django.shortcuts import render,redirect,reverse
 from . import forms,models
 from django.db.models import Sum
@@ -56,43 +58,55 @@ def student_exam_view(request):
 
 @login_required(login_url='studentlogin')
 @user_passes_test(is_student)
-def take_exam_view(request,pk):
-    course=QMODEL.Course.objects.get(id=pk)
-    total_questions=QMODEL.Question.objects.all().filter(course=course).count()
-    questions=QMODEL.Question.objects.all().filter(course=course)
-    total_marks=0
-    for q in questions:
-        total_marks=total_marks + q.marks
-    
-    return render(request,'student/take_exam.html',{'course':course,'total_questions':total_questions,'total_marks':total_marks})
+def take_exam_view(request):
+    total_questions=5
+
+    return render(request,'student/take_exam.html',{'total_questions':total_questions,'total_marks':total_questions})
 
 @login_required(login_url='studentlogin')
 @user_passes_test(is_student)
-def start_exam_view(request,pk):
-    course=QMODEL.Course.objects.get(id=pk)
-    questions=QMODEL.Question.objects.all().filter(course=course)
+def start_exam_view(request):
+
+    num_entities = QMODEL.Question.objects.all().count()
+
+    rand_entities = []
+    while len(rand_entities) < 5:
+        num = random.randint(1, num_entities)
+        if not num in rand_entities:
+            rand_entities.append(num)
+
+    questions = QMODEL.Question.objects.filter(id__in=rand_entities)
+
+    ids = []
+    for i in questions:
+        ids.append(i.id)
+
     if request.method=='POST':
         pass
-    response= render(request,'student/start_exam.html',{'course':course,'questions':questions})
-    response.set_cookie('course_id',course.id)
+    response= render(request,'student/start_exam.html',{'questions':questions})
+    response.set_cookie('question_ids', ','.join([str(elem) for elem in ids]))
     return response
 
 
 @login_required(login_url='studentlogin')
 @user_passes_test(is_student)
 def calculate_marks_view(request):
-    if request.COOKIES.get('course_id') is not None:
-        course_id = request.COOKIES.get('course_id')
-        course=QMODEL.Course.objects.get(id=course_id)
-        
+
+    if request.COOKIES.get('question_ids') is not None:
+        question_id = request.COOKIES.get('question_ids')
+
         total_marks=0
-        questions=QMODEL.Question.objects.all().filter(course=course)
+        questions=QMODEL.Question.objects.all().filter(id__in=question_id.split(','))
+        course = QMODEL.Course.objects.get(id=1)
+
+        print(questions.query)
+
         for i in range(len(questions)):
-            
             selected_ans = request.COOKIES.get(str(i+1))
             actual_answer = questions[i].answer
             if selected_ans == actual_answer:
-                total_marks = total_marks + questions[i].marks
+                total_marks = total_marks + 1
+
         student = models.Student.objects.get(user_id=request.user.id)
         result = QMODEL.Result()
         result.marks=total_marks
@@ -107,17 +121,44 @@ def calculate_marks_view(request):
 @login_required(login_url='studentlogin')
 @user_passes_test(is_student)
 def view_result_view(request):
-    courses=QMODEL.Course.objects.all()
-    return render(request,'student/view_result.html',{'courses':courses})
+
+    last_exam = QMODEL.Result.objects.filter(student_id=request.user.id).latest('id')
+
+    result = 'Please try again!'
+
+    if last_exam.marks == 3:
+        result = 'Good job!'
+    elif last_exam.marks == 4:
+        result = 'Excellent work!'
+    elif last_exam.marks == 5:
+        result = 'You are a genius!'
+
+    return render(request,'student/view_result.html',{'result':result, 'last_exam': last_exam})
     
 
 @login_required(login_url='studentlogin')
 @user_passes_test(is_student)
-def check_marks_view(request,pk):
-    course=QMODEL.Course.objects.get(id=pk)
+def check_marks_view(request):
     student = models.Student.objects.get(user_id=request.user.id)
-    results= QMODEL.Result.objects.all().filter(exam=course).filter(student=student)
-    return render(request,'student/check_marks.html',{'results':results})
+    results= QMODEL.Result.objects.all().filter(exam=1).filter(student=student)
+
+    average = 0
+    highest_marks = float('-inf')
+    lowest_marks = float('inf')
+
+    for result in results:
+        marks = result.marks
+
+        if marks > highest_marks:
+            highest_marks = marks
+
+        if marks < lowest_marks:
+            lowest_marks = marks
+    for i in results:
+        average += i.marks
+
+
+    return render(request,'student/check_marks.html',{'results':results, 'avg': average / results.count(),'max':highest_marks,'min':lowest_marks})
 
 @login_required(login_url='studentlogin')
 @user_passes_test(is_student)

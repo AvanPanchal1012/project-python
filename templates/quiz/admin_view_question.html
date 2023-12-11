@@ -25,7 +25,7 @@
 <div class="container">
   <div class="panel panel-primary">
     <div class="panel-heading">
-      <h6 class="panel-title">View Questions |{{ courses }}|</h6>
+      <h6 class="panel-title">View Questions</h6>
     </div>
     <table class="table table-hover" id="dev-table">
       <thead>
@@ -37,16 +37,16 @@
           <th>View Question</th>
         </tr>
       </thead>
-      {% for c in courses %}
+
       <tr>
 
 <!--        <td> {{c.course_name}}</td>-->
-        <td>{{c.question_number}}</td>
-        <td>{{c.total_marks}}</td>
-        <td><a class="btn btn-primary btn-xs" href="{% url 'view-question' c.id  %}"><span class="glyphicon glyphicon-eye-open"></span></a></td>
+        <td>{{courses}}</td>
+        <td>{{marks}}</td>
+        <td><a class="btn btn-primary btn-xs" href="{% url 'view-question' %}"><span class="glyphicon glyphicon-eye-open"></span></a></td>
         
       </tr>
-      {% endfor %}
+
     </table>
   </div>
 </div>
