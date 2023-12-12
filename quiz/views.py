@@ -228,14 +228,16 @@ def admin_question_view(request):
 @login_required(login_url='adminlogin')
 def admin_add_question_view(request):
     questionForm=forms.QuestionForm()
+
     if request.method=='POST':
         questionForm=forms.QuestionForm(request.POST)
+        print("questionForm", questionForm)
         if questionForm.is_valid():
             question=questionForm.save(commit=False)
             # course=models.Course.objects.get(id=request.POST.get('courseID'))
-            course = models.Course.objects.get(id = 1)
-            print(course)
-            question.course=course
+            # course = models.Course.objects.get(id = 1)
+            # print("course values",course.query)
+            question.course_id=1
             question.save()
         else:
             print("form is invalid")
@@ -280,11 +282,8 @@ def admin_view_marks_view(request,pk):
 
 @login_required(login_url='adminlogin')
 def admin_check_marks_view(request,pk):
-    course = models.Course.objects.get(id=pk)
-    student_id = request.COOKIES.get('student_id')
-    student= SMODEL.Student.objects.get(id=student_id)
-
-    results= models.Result.objects.all().filter(exam=course).filter(student=student)
+    student_id = pk
+    results= models.Result.objects.all().filter(student_id=student_id)
     return render(request,'quiz/admin_check_marks.html',{'results':results})
     
 

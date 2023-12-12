@@ -106,12 +106,13 @@ def calculate_marks_view(request):
             actual_answer = questions[i].answer
             if selected_ans == actual_answer:
                 total_marks = total_marks + 1
-
+        print("studentdata", request.user.id)
         student = models.Student.objects.get(user_id=request.user.id)
         result = QMODEL.Result()
         result.marks=total_marks
         result.exam=course
         result.student=student
+
         result.save()
 
         return HttpResponseRedirect('view-result')
@@ -121,8 +122,13 @@ def calculate_marks_view(request):
 @login_required(login_url='studentlogin')
 @user_passes_test(is_student)
 def view_result_view(request):
-
-    last_exam = QMODEL.Result.objects.filter(student_id=request.user.id).latest('id')
+    print('userid',request.user.id)
+    user_id = 1
+    if request.user.id == 1:
+        user_id = 1;
+    else:
+        user_id = request.user.id - 1
+    last_exam = QMODEL.Result.objects.filter(student_id=user_id).latest('id')
 
     result = 'Please try again!'
 
