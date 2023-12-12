@@ -23,7 +23,9 @@
 </head>
 <br><br>
 <div class="container">
-
+  {% if not no_result %}
+  
+    {% if last_exam %}
     <div class="alert alert-success result">
       Last Attempt Result <br/>
       Score : {{ last_exam.marks }} / 5  <br/>
@@ -33,9 +35,17 @@
     <a class="btn btn-danger btn-primary" href="{% url 'check-marks' %}">View Attempts History</a>
 
     {% if last_exam.marks < 3  %}
-   <a class="btn btn-success btn-primary" href="{% url 'take-exam' %}">
+      <a class="btn btn-success btn-primary" href="{% url 'take-exam' %}">
             Retake the Quiz
-        </a>
+      </a>
+    {% endif %}
+  
+  {% endif %}
+
+  {% else %}
+  <div class="alert alert-danger">
+    No results found.
+  </div>
 {% endif %}
 
 

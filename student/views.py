@@ -10,6 +10,7 @@ from django.conf import settings
 from datetime import date, timedelta
 from quiz import models as QMODEL
 from teacher import models as TMODEL
+from django.core.exceptions import ObjectDoesNotExist
 
 
 #for showing signup/login button for student
@@ -122,25 +123,28 @@ def calculate_marks_view(request):
 @login_required(login_url='studentlogin')
 @user_passes_test(is_student)
 def view_result_view(request):
-    print('userid',request.user.id)
-    user_id = 1
-    if request.user.id == 1:
-        user_id = 1;
-    else:
-        user_id = request.user.id - 1
-    last_exam = QMODEL.Result.objects.filter(student_id=user_id).latest('id')
+    try:
+        if request.user.id == 1:
+            user_id = 1
+        else:
+            user_id = request.user.id - 1
 
-    result = 'Please try again!'
+        last_exam = QMODEL.Result.objects.filter(student_id=user_id).latest('id')
 
-    if last_exam.marks == 3:
-        result = 'Good job!'
-    elif last_exam.marks == 4:
-        result = 'Excellent work!'
-    elif last_exam.marks == 5:
-        result = 'You are a genius!'
+        if last_exam:
+            result = 'Please try again!'
 
-    return render(request,'student/view_result.html',{'result':result, 'last_exam': last_exam})
-    
+            if last_exam.marks == 3:
+                result = 'Good job!'
+            elif last_exam.marks == 4:
+                result = 'Excellent work!'
+            elif last_exam.marks == 5:
+                result = 'You are a genius!'
+
+        return render(request,'student/view_result.html',{'result':result, 'last_exam': last_exam})
+    except ObjectDoesNotExist:
+        print(f"No result found for student with ID {user_id}")
+        return render(request,'student/view_result.html', {'no_result': True})
 
 @login_required(login_url='studentlogin')
 @user_passes_test(is_student)
