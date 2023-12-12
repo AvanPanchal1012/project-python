@@ -8,9 +8,7 @@ from django.conf import settings
 from datetime import date, timedelta
 from django.db.models import Q
 from django.core.mail import send_mail
-from teacher import models as TMODEL
 from student import models as SMODEL
-from teacher import forms as TFORM
 from student import forms as SFORM
 from django.contrib.auth.models import User
 
@@ -22,23 +20,12 @@ def home_view(request):
         return HttpResponseRedirect('afterlogin')  
     return render(request,'quiz/index.html')
 
-
-def is_teacher(user):
-    return user.groups.filter(name='TEACHER').exists()
-
 def is_student(user):
     return user.groups.filter(name='STUDENT').exists()
 
 def afterlogin_view(request):
     if is_student(request.user):      
         return redirect('student/student-dashboard')
-                
-    elif is_teacher(request.user):
-        accountapproval=TMODEL.Teacher.objects.all().filter(user_id=request.user.id,status=True)
-        if accountapproval:
-            return redirect('teacher/teacher-dashboard')
-        else:
-            return render(request,'teacher/teacher_wait_for_approval.html')
     else:
         return redirect('admin-dashboard')
 
@@ -54,93 +41,10 @@ def adminclick_view(request):
 def admin_dashboard_view(request):
     dict={
     'total_student':SMODEL.Student.objects.all().count(),
-    'total_teacher':TMODEL.Teacher.objects.all().filter(status=True).count(),
     'total_course':models.Course.objects.all().count(),
     'total_question':models.Question.objects.all().count(),
     }
     return render(request,'quiz/admin_dashboard.html',context=dict)
-
-@login_required(login_url='adminlogin')
-def admin_teacher_view(request):
-    dict={
-    'total_teacher':TMODEL.Teacher.objects.all().filter(status=True).count(),
-    'pending_teacher':TMODEL.Teacher.objects.all().filter(status=False).count(),
-    'salary':TMODEL.Teacher.objects.all().filter(status=True).aggregate(Sum('salary'))['salary__sum'],
-    }
-    return render(request,'quiz/admin_teacher.html',context=dict)
-
-@login_required(login_url='adminlogin')
-def admin_view_teacher_view(request):
-    teachers= TMODEL.Teacher.objects.all().filter(status=True)
-    return render(request,'quiz/admin_view_teacher.html',{'teachers':teachers})
-
-
-@login_required(login_url='adminlogin')
-def update_teacher_view(request,pk):
-    teacher=TMODEL.Teacher.objects.get(id=pk)
-    user=TMODEL.User.objects.get(id=teacher.user_id)
-    userForm=TFORM.TeacherUserForm(instance=user)
-    teacherForm=TFORM.TeacherForm(request.FILES,instance=teacher)
-    mydict={'userForm':userForm,'teacherForm':teacherForm}
-    if request.method=='POST':
-        userForm=TFORM.TeacherUserForm(request.POST,instance=user)
-        teacherForm=TFORM.TeacherForm(request.POST,request.FILES,instance=teacher)
-        if userForm.is_valid() and teacherForm.is_valid():
-            user=userForm.save()
-            user.set_password(user.password)
-            user.save()
-            teacherForm.save()
-            return redirect('admin-view-teacher')
-    return render(request,'quiz/update_teacher.html',context=mydict)
-
-
-
-@login_required(login_url='adminlogin')
-def delete_teacher_view(request,pk):
-    teacher=TMODEL.Teacher.objects.get(id=pk)
-    user=User.objects.get(id=teacher.user_id)
-    user.delete()
-    teacher.delete()
-    return HttpResponseRedirect('/admin-view-teacher')
-
-
-
-
-@login_required(login_url='adminlogin')
-def admin_view_pending_teacher_view(request):
-    teachers= TMODEL.Teacher.objects.all().filter(status=False)
-    return render(request,'quiz/admin_view_pending_teacher.html',{'teachers':teachers})
-
-
-@login_required(login_url='adminlogin')
-def approve_teacher_view(request,pk):
-    teacherSalary=forms.TeacherSalaryForm()
-    if request.method=='POST':
-        teacherSalary=forms.TeacherSalaryForm(request.POST)
-        if teacherSalary.is_valid():
-            teacher=TMODEL.Teacher.objects.get(id=pk)
-            teacher.salary=teacherSalary.cleaned_data['salary']
-            teacher.status=True
-            teacher.save()
-        else:
-            print("form is invalid")
-        return HttpResponseRedirect('/admin-view-pending-teacher')
-    return render(request,'quiz/salary_form.html',{'teacherSalary':teacherSalary})
-
-@login_required(login_url='adminlogin')
-def reject_teacher_view(request,pk):
-    teacher=TMODEL.Teacher.objects.get(id=pk)
-    user=User.objects.get(id=teacher.user_id)
-    user.delete()
-    teacher.delete()
-    return HttpResponseRedirect('/admin-view-pending-teacher')
-
-@login_required(login_url='adminlogin')
-def admin_view_teacher_salary_view(request):
-    teachers= TMODEL.Teacher.objects.all().filter(status=True)
-    return render(request,'quiz/admin_view_teacher_salary.html',{'teachers':teachers})
-
-
 
 
 @login_required(login_url='adminlogin')

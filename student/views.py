@@ -9,7 +9,6 @@ from django.contrib.auth.decorators import login_required,user_passes_test
 from django.conf import settings
 from datetime import date, timedelta
 from quiz import models as QMODEL
-from teacher import models as TMODEL
 from django.core.exceptions import ObjectDoesNotExist
 
 

@@ -21,9 +21,6 @@
 <form method="POST" autocomplete="off" style="margin:100px;margin-top: 0px;">
     {%csrf_token%}
     <div class="form-group">
-<!--        <label for="question">Course</label>-->
-<!--      {% render_field questionForm.courseID|attr:'required:true' class="form-control"  %}-->
-<!--        <br>-->
 
       <label for="question">Question</label>
       {% render_field questionForm.question|attr:'required:true' class="form-control" placeholder="What is the currency of India ?" %}
